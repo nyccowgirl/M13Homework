@@ -1,0 +1,60 @@
+1.  Graph A:    6 nodes, 10 edges
+                undirected, unweighted, connected, not complete, cyclic
+    Graph B:    4 nodes, 3 edges
+                undirected, unweighted, disconnected, not complete, cyclic
+    Graph C:    5 nodes, 5 edges
+                directed, unweighted, disconnected, not complete, acyclic
+
+2.  A->D->J->G->B->F->E
+    C->B->E->H->D->A->J->G->F
+
+3.  A->D->J->G->B->F->E
+    C->B->D->J->G->F->E->H->A
+
+4.  HFGEDCAB
+
+5.  S->Y->Z
+    S->Y->W
+
+6.      A   C   E   G   J   K   M   N   P
+    A       T       T   T
+    C
+    E       T           T   T
+    G                   T
+    J
+    K
+    M               T
+    N               T
+    P                   T   T       T
+
+        A   C   M   P   Q   W   X
+    A               9   5       6
+    C           4   3   7   1
+    M       4       8
+    P   9   3   8
+    Q   5   7               2
+    W       1           2
+    X   6
+
+7.  A->CGJ
+    C
+    E->CJK
+    G->J
+    J
+    K
+    M->G
+    N->G
+    P->JKN
+
+    A->P(9)Q(5)X(6)
+    C->M(4)P(3)Q(7)W(1)
+    M->C(4)P(8)
+    P->A(9)C(3)M(8)
+    Q->A(5)C(7)W(2)
+    W->C(1)Q(2)
+    X->A(6)
+
+9.  topological ordering - task scheduling (sort interdependent tasks to see which one should precede the other) or
+    pre-requisite problems (pre-requisite classes)
+
+10.
