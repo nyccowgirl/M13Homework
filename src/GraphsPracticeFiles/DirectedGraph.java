@@ -10,7 +10,7 @@ import java.util.*;
  * @version 5.0
  */
 public class DirectedGraph<T> implements GraphInterface<T> {
-	private Map<T, Vertex<T>> vertices;
+	protected Map<T, Vertex<T>> vertices;
 	private int edgeCount;
 
 	public DirectedGraph() {
@@ -137,6 +137,44 @@ public class DirectedGraph<T> implements GraphInterface<T> {
 		return traversalOrder;
 	}
 
+	public Queue<T> getTopologicalOrderIndegree() {
+
+		Queue<T> ordering = new LinkedList<T>();
+
+		// get a set of all vertices in the graph
+		Set<Vertex<T>> vertexSet = new HashSet<>(vertices.values());
+		Iterator<Vertex<T>> vertexIterator = vertexSet.iterator();
+		
+		// iterate over all vertices looking for a vertex with indegree 0
+		while (vertexIterator.hasNext()) {
+			Vertex<T> vertex = vertexIterator.next();
+			
+			// we find a vertex with indegree 0
+			if (vertex.getIndegree() == 0) {				
+				ordering.add(vertex.getData()); // add it to the queue
+				
+				// we are going to remove it from the graph, so we need
+				// to find all of its neighbors and update the indegree
+				// values to be one less (one less edge coming into those neighbors)
+				Iterator<Vertex<T>> neighborIterator = vertex.getNeighborIterator();
+				while (neighborIterator.hasNext()) {
+					Vertex<T> neighbor = neighborIterator.next();
+					neighbor.decrementIndegree();
+				}
+				// remove the vertex from the set
+				vertexIterator.remove();
+			}
+			
+			// if we've iterated through the list but still haven't
+			// processed all the vertices, we need to iterate again
+			if(!vertexIterator.hasNext() && !vertexSet.isEmpty()) {
+				vertexIterator = vertexSet.iterator();
+			}
+		}
+
+		return ordering;
+	}
+	
 	public Stack<T> getTopologicalOrder() {
 		resetVertices();
 
@@ -238,53 +276,91 @@ public class DirectedGraph<T> implements GraphInterface<T> {
 		return cheapestPathCost;
 	}
 
+	
+	
+	
+	// make sure each part of the graph is reached with a depth-first search
 	public boolean isCyclic() {
-		HashSet<Integer> white = new HashSet<>();
-		HashSet<Integer> gray = new HashSet<>();
-		HashSet<Integer> black = new HashSet<>();
+		Set<Vertex<T>> white = new HashSet<>();
+		Set<Vertex<T>> gray = new HashSet<>();
+		Set<Vertex<T>> black = new HashSet<>();
+		white.addAll(vertices.values());
+		
+		while(!white.isEmpty()) {
+			Iterator<Vertex<T>> vertexIterator = vertices.values().iterator();
+			while(vertexIterator.hasNext()) {
+				Vertex<T> vertex = vertexIterator.next();
+				if(white.contains(vertex)) {
+					boolean dfsResult = depthFirstCycleDetector(vertex, white, gray, black);
+					
+					// an iterative version, for reference
+					// Stack<Vertex<T>> vertexStack = new Stack<>();
+					// boolean dfsResult = depthFirstCycleDetectorStack(vertex, white, gray, black, vertexStack);
 
-		// Put all vertices in white set
-		for (int i = 0; i < vertices.size(); i++) {
-			white.add(i);
-		}
-
-		// Traverse white vertices
-		for (int i = 0; i < edgeCount; i++) {
-			if (isCyclic(i, white, gray, black)) {
-				return true;
+					if(dfsResult==true) {
+						return true;
+					}
+				}
 			}
 		}
 		return false;
 	}
+	
+	private boolean depthFirstCycleDetectorStack(Vertex<T> vertexS, Set<Vertex<T>> white, Set<Vertex<T>> gray, Set<Vertex<T>> black, Stack<Vertex<T>> vertexStack) {
 
-	public boolean isCyclic(int vertex, HashSet<Integer> white, HashSet<Integer> gray, HashSet<Integer> black) {
-		// For specific vertex, turn gray from white
+		vertexStack.push(vertexS);
+		white.remove(vertexS);
+		gray.add(vertexS);
+		
+		while(!vertexStack.isEmpty()) {
+			Vertex<T> vertex = vertexStack.pop();
+		
+			Iterator<Vertex<T>> neighborIterator = vertex.getNeighborIterator();
+			while(neighborIterator.hasNext()) {
+				Vertex<T> neighbor = neighborIterator.next();
+				if(black.contains(neighbor)) {
+					// do nothing
+				} else if(gray.contains(neighbor)) {
+					return true;
+				} else {
+					vertexStack.push(neighbor);
+					white.remove(neighbor);
+					gray.add(neighbor);
+				}
+			}
+			gray.remove(vertex);
+			black.add(vertex);
+		}
+		return false;
+	}
+
+	
+	// "processing" is conducting a depth-first search from that vertex
+	// white vertices are unprocessed; gray are in process; black have already been completely processed
+	// if we reach a gray vertex during a depth-first search, then we have a cycle
+	private boolean depthFirstCycleDetector(Vertex<T> vertex, Set<Vertex<T>> white, Set<Vertex<T>> gray,
+			Set<Vertex<T>> black) {
 		white.remove(vertex);
 		gray.add(vertex);
 
-		// Visit neighbors
-		for (int i = 0; i < vertices.get(vertex).size(); i++) {
-			int adj = vertices.get(vertex).get(i);
-
-			// If vertex is in gray, cycle is found
-			if (gray.contains(adj)) {
+		Iterator<Vertex<T>> neighborIterator = vertex.getNeighborIterator();
+		while (neighborIterator.hasNext()) {
+			Vertex<T> neighbor = neighborIterator.next();
+			if (black.contains(neighbor)) {
+				// do nothing
+			} else if (gray.contains(neighbor)) {
 				return true;
-			}
-
-			// If vertex is in black, vertex is done
-			if (black.contains(adj)) {
-				continue;
-			}
-
-			// Traverse from vertex
-			if (isCyclic(adj, white, gray, black)) {
-				return true;
+			} else {
+				boolean recursiveResult = depthFirstCycleDetector(neighbor, white, gray, black);
+				if (recursiveResult == true) {
+					return true;
+				}
 			}
 		}
-		// If not cycle from vertex, turn black from gray
 		gray.remove(vertex);
 		black.add(vertex);
 		return false;
 	}
+	
 	
 }

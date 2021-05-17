@@ -13,11 +13,13 @@ class Vertex<T> {
 	private T data;
 	private List<Edge<T>> edgeList; // Edges to neighbors
 	private boolean visited; // true if visited
+	private int indegree; // used for the second algorithm of topological ordering
 
 	public Vertex(T vertexData) {
 		data = vertexData;
 		edgeList = new LinkedList<>();
 		visited = false;
+		indegree = 0;
 	}
 
 	public T getData() {
@@ -39,6 +41,15 @@ class Vertex<T> {
 	public String toString() {
 		return data.toString();
 	}
+	public int getIndegree() {
+		return indegree;
+	}
+	public void incrementIndegree() {
+		indegree++;
+	}
+	public void decrementIndegree() {
+		indegree--;
+	}
 
 	public boolean connect(Vertex<T> endVertex, double edgeWeight) {
 		boolean result = false;
@@ -55,6 +66,7 @@ class Vertex<T> {
 
 			if (!duplicateEdge) {
 				edgeList.add(new Edge<T>(endVertex, edgeWeight));
+				endVertex.incrementIndegree();
 				result = true;
 			} 
 		} 

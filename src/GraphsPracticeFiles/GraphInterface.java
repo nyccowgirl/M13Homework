@@ -110,5 +110,7 @@ public interface GraphInterface<T> {
 	public Stack<T> getTopologicalOrder();
 	
 	public void display();
+	
+	public boolean isCyclic();
 
 }
